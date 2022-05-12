@@ -99,11 +99,11 @@ class Sensor(object):
         self.setOutline()
         self.setActiveArea()
 
-    def getPolygon(self, active=False):
+    def getPolygon(self, active=False, alpha=0.5, color='gray'):
         '''
         Returns a polygon that can be drawn with matplotlib
         '''
-        return plt.Polygon(self.outline if not active else self.activeArea, closed=True, edgecolor='black', facecolor=self.color if not active else 'gray', alpha=0.5 )
+        return plt.Polygon(self.outline if not active else self.activeArea, closed=True, edgecolor='black', facecolor=self.color if not active else color, alpha=alpha )
 
 class ReadoutBoard(Sensor):
     def __init__(self, height, width, x=0, y=0, color='green'):
@@ -293,11 +293,11 @@ class SuperModule(object):
             s.move_by(x, y)
         
 
-    def getPolygon(self):
+    def getPolygon(self, alpha=0.5, fill=True):
         '''
         Returns a polygon that can be drawn with matplotlib
         '''
-        return plt.Polygon(self.outline, closed=True, linewidth=3, edgecolor='black', facecolor=self.color, alpha=0.5)
+        return plt.Polygon(self.outline, fill=fill, closed=True, linewidth=3, edgecolor='black', facecolor=self.color, alpha=alpha)
 
     def getActiveArea(self):
         '''
