@@ -135,6 +135,18 @@ class PowerBoard(Sensor):
 
         self.setOutline()
 
+class VTRX(Sensor):
+    def __init__(self, rb, color='orange'):
+        self.height = 20
+        self.width = 10
+        self.x = rb.x2-49
+        self.y = rb.y
+        self.color = color
+        self.deadspace = 0
+
+        self.setOutline()
+
+
 class Module(object):
     def __init__(self, height, width, x=0, y=0, n_sensor_x=1, n_sensor_y=2, sensor_distance_y=22.5, sensor_distance_x=42.6):
         '''
@@ -242,6 +254,7 @@ class SuperModule(object):
         self._RB = copy.deepcopy(readoutboard)
         self._module = copy.deepcopy(module) # not really used, but can be useful
 
+
         # place the modules
         self.modules = []
         for im in range(n_modules):
@@ -258,6 +271,8 @@ class SuperModule(object):
         # move the components in place
         self.PB.move_by(0, self.RB.width/2 if orientation=='above' else (-1)*self.RB.width/2)
         self.RB.move_by(0, (-1)*self.PB.width/2 if orientation=='above' else self.PB.width/2)
+
+        self.VTRX = VTRX(self.RB)
     
     @classmethod
     def fromSuperModule(cls, supermodule, x=0, y=0, n_modules=3, module_gap=0.5, orientation='above', color='b'):
@@ -289,6 +304,7 @@ class SuperModule(object):
         self.setOutline()
         self.RB.move_by(x,y)
         self.PB.move_by(x,y)
+        self.VTRX.move_by(x,y)
         for s in self.modules:
             s.move_by(x, y)
         
