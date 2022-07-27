@@ -99,11 +99,11 @@ class Sensor(object):
         self.setOutline()
         self.setActiveArea()
 
-    def getPolygon(self, active=False, alpha=0.5, color='gray'):
+    def getPolygon(self, fill=True, active=False, alpha=0.5, color='gray'):
         '''
         Returns a polygon that can be drawn with matplotlib
         '''
-        return plt.Polygon(self.outline if not active else self.activeArea, closed=True, edgecolor='black', facecolor=self.color if not active else color, alpha=alpha )
+        return plt.Polygon(self.outline if not active else self.activeArea, fill=fill, closed=True, edgecolor='black', facecolor=self.color if not active else color, alpha=alpha )
 
 class ReadoutBoard(Sensor):
     def __init__(self, height, width, x=0, y=0, color='green'):
@@ -136,11 +136,12 @@ class PowerBoard(Sensor):
         self.setOutline()
 
 class VTRX(Sensor):
-    def __init__(self, rb, color='orange'):
-        self.height = 20
-        self.width = 10
-        self.x = rb.x2-49
-        self.y = rb.y
+    def __init__(self, rb, color='orange', cm=False):
+        scaler = 10 if cm else 1
+        self.height = 20/scaler
+        self.width = 10/scaler
+        self.x = rb.x2-32.5/scaler  # 49 is the old value
+        self.y = rb.y + 6/scaler  # 6 is new
         self.color = color
         self.deadspace = 0
 
@@ -230,7 +231,7 @@ class Module(object):
         self.vay2 = [ s.ay2 for s in self.sensors ]
 
 class SuperModule(object):
-    def __init__(self, module, powerboard, readoutboard, x=0, y=0, n_modules=3, module_gap=0.5, orientation='above', color='b'):
+    def __init__(self, module, powerboard, readoutboard, x=0, y=0, n_modules=3, module_gap=0.5, orientation='above', color='b', cm=False):
         '''
         This consists of N modules together with a readout board and a power board.
         '''
@@ -269,15 +270,16 @@ class SuperModule(object):
         self.RB.setOutline()
 
         # move the components in place
+        #print ("Not moving anything")
         self.PB.move_by(0, self.RB.width/2 if orientation=='above' else (-1)*self.RB.width/2)
         self.RB.move_by(0, (-1)*self.PB.width/2 if orientation=='above' else self.PB.width/2)
 
-        self.VTRX = VTRX(self.RB)
+        self.VTRX = VTRX(self.RB, cm=cm)
     
     @classmethod
-    def fromSuperModule(cls, supermodule, x=0, y=0, n_modules=3, module_gap=0.5, orientation='above', color='b'):
+    def fromSuperModule(cls, supermodule, x=0, y=0, n_modules=3, module_gap=0.5, orientation='above', color='b', cm=False):
         
-        return cls(supermodule._module, supermodule._PB, supermodule._RB, x=x, y=y, n_modules=n_modules, module_gap=module_gap, orientation=orientation, color=color)
+        return cls(supermodule._module, supermodule._PB, supermodule._RB, x=x, y=y, n_modules=n_modules, module_gap=module_gap, orientation=orientation, color=color, cm=cm)
 
     def setOutline(self):
         '''
@@ -419,16 +421,18 @@ class Dee(object):
 
         return
 
-    def fromCenters(self, centers, sensor):
+    def fromCenters(self, centers, sensor, cm=False):
         '''
         this is useful for old layouts / tilings
         
         '''
+        scaler = 10 if cm else 1
+
         # loop over centers
         self.sensors = []
         for x,y in centers:
             tmp = copy.deepcopy(sensor)
-            tmp.move_to(x,y)
+            tmp.move_to(x/scaler,y/scaler)
             self.sensors.append(tmp)
 
         # manually get the corners
